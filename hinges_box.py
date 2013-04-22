@@ -8,11 +8,12 @@ thickness=0.5
 length = side*num_panels + (4*thickness)
 num_cuts = 10
 cut_width = 0.5
-
+cut_ratio = 0.1
+spring_width = side*cut_ratio/2
 
 dwg = svgwrite.Drawing(filename='basic_box.svg', debug=True)
-cuts = dwg.g(id='cuts', stroke='green')
-scores = dwg.g(id='scores', stroke='blue')
+cuts = dwg.g(id='cuts', stroke='black')
+scores = dwg.g(id='scores', stroke='red')
 dwg.add(cuts)
 dwg.add(scores)
 
@@ -67,6 +68,23 @@ def addSide(dwg,start_x,end_x,count,reference_height):
 		scores.add(dwg.line(start=(start_x*mm,bottom_hinge_bottom*mm), end=(start_x*mm,bottom_fold*mm)))
 		cuts.add(dwg.line(start=(start_x*mm,top_cut*mm), end=(start_x*mm,top_fold*mm)))
 		cuts.add(dwg.line(start=(start_x*mm,bottom_fold*mm), end=(start_x*mm,bottom_cut*mm)))
+
+	elasticity_control_cutout_left = start_x + spring_width
+	elasticity_control_cutout_right = start_x + side - spring_width
+
+	cuts.add(dwg.line(start=(elasticity_control_cutout_left*mm,top_hinges_bottom*mm), end=(elasticity_control_cutout_right*mm,top_hinges_bottom*mm)))
+	cuts.add(dwg.line(start=(elasticity_control_cutout_left*mm,top_hinges_top*mm), end=(elasticity_control_cutout_right*mm,top_hinges_top*mm)))
+
+	cuts.add(dwg.line(start=(elasticity_control_cutout_left*mm,top_hinges_bottom*mm), end=(elasticity_control_cutout_left*mm,top_hinges_top*mm)))
+	cuts.add(dwg.line(start=(elasticity_control_cutout_right*mm,top_hinges_bottom*mm), end=(elasticity_control_cutout_right*mm,top_hinges_top*mm)))
+
+
+	cuts.add(dwg.line(start=(elasticity_control_cutout_left*mm,bottom_hinge_bottom*mm), end=(elasticity_control_cutout_right*mm,bottom_hinge_bottom*mm)))
+	cuts.add(dwg.line(start=(elasticity_control_cutout_left*mm,bottom_hinge_top*mm), end=(elasticity_control_cutout_right*mm,bottom_hinge_top*mm)))
+
+	cuts.add(dwg.line(start=(elasticity_control_cutout_left*mm,bottom_hinge_bottom*mm), end=(elasticity_control_cutout_left*mm,bottom_hinge_top*mm)))
+	cuts.add(dwg.line(start=(elasticity_control_cutout_right*mm,bottom_hinge_bottom*mm), end=(elasticity_control_cutout_right*mm,bottom_hinge_top*mm)))
+
 
 	return (top_cut,bottom_cut)
 
