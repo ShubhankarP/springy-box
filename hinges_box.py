@@ -52,6 +52,7 @@ def addSide(dwg,start_x,end_x,count,reference_height):
 
 	cuts_arr = []
 	dashes_arr = []
+	scores_arr = []
 	extra_top_cut = 0
 	extra_bottom_cut = 0
 	#Add extra weight balancing flap for the first side
@@ -62,8 +63,8 @@ def addSide(dwg,start_x,end_x,count,reference_height):
 		dashes_arr = [top_cut,bottom_cut]
 	else:
 		cuts_arr = [top_cut,bottom_cut]
-	scores_arr = top_hinges+bottom_hinges
 	dashes_arr += [top_fold,mid_hinge,bottom_fold]
+	scores_arr = top_hinges+bottom_hinges
 
 	for y in cuts_arr:
 		cuts.add(dwg.line(start=(start_x*mm,y*mm), end=(end_x*mm,y*mm)))
@@ -109,6 +110,11 @@ def lastSide(dwg,start_x,top_cut,bottom_cut,reference_height):
 	tab_length = side - (thickness*num_sides)
 	end_x = start_x + tab_length
 
+	inner_flap_start_x = start_x - thickness
+	outer_flap_start_x = start_x + thickness
+	inner_flap_end_x = inner_flap_start_x + tab_length
+	outer_flap_end_x = outer_flap_start_x + tab_length
+
 	top_hinge = reference_height
 	top_tab_bottom = top_hinge
 	top_tab_top = top_tab_bottom - tab_length
@@ -119,10 +125,10 @@ def lastSide(dwg,start_x,top_cut,bottom_cut,reference_height):
 	for y in arr:
 		cuts.add(dwg.line(start=(start_x*mm,y*mm), end=((end_x*mm,y*mm))))
 
-	cuts.add(dwg.line(start=(end_x*mm,top_tab_top*mm), end=((end_x*mm,top_tab_bottom*mm))))
-	cuts.add(dwg.line(start=(end_x*mm,bottom_tab_top*mm), end=((end_x*mm,bottom_tab_bottom*mm))))
-	cuts.add(dwg.line(start=(start_x*mm,top_tab_top*mm), end=((start_x*mm,top_tab_bottom*mm)))).dasharray(dash_length)
-	cuts.add(dwg.line(start=(start_x*mm,bottom_tab_top*mm), end=((start_x*mm,bottom_tab_bottom*mm)))).dasharray(dash_length)
+	cuts.add(dwg.line(start=(inner_flap_end_x*mm,top_tab_top*mm), end=((inner_flap_end_x*mm,top_tab_bottom*mm))))
+	cuts.add(dwg.line(start=(inner_flap_end_x*mm,bottom_tab_top*mm), end=((inner_flap_end_x*mm,bottom_tab_bottom*mm))))
+	cuts.add(dwg.line(start=(inner_flap_start_x*mm,top_tab_top*mm), end=((inner_flap_start_x*mm,top_tab_bottom*mm)))).dasharray(dash_length)
+	cuts.add(dwg.line(start=(inner_flap_start_x*mm,bottom_tab_top*mm), end=((inner_flap_start_x*mm,bottom_tab_bottom*mm)))).dasharray(dash_length)
 
 	cuts.add(dwg.line(start=(start_x*mm,top_cut*mm), end=((start_x*mm,top_tab_top*mm))))
 	cuts.add(dwg.line(start=(start_x*mm,bottom_cut*mm), end=((start_x*mm,bottom_tab_bottom*mm))))
