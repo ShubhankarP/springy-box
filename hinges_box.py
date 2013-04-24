@@ -6,10 +6,11 @@ num_sides = 4
 num_panels = 6
 thickness=0.5
 length = side*num_panels + (4*thickness)
-num_cuts = 10
-cut_width = 0.5
-cut_ratio = 0.1
+num_cuts = 20
+cut_width = 0.6
+cut_ratio = 0.125
 spring_width = side*cut_ratio/2
+dash_length = [6,2]
 
 dwg = svgwrite.Drawing(filename='basic_box.svg', debug=True)
 cuts = dwg.g(id='cuts', stroke='black')
@@ -18,11 +19,11 @@ dwg.add(cuts)
 dwg.add(scores)
 
 def basic_box():
-	start_x = 0
+	start_x = 10
 	end_x = 0
 	top_cut = 0
 	bottom_cut = 0
-	reference_height = 2*side
+	reference_height = 3*side+thickness
 	for i in range(num_sides):
 		end_x = start_x + side
 		(top_cut,bottom_cut) = addSide(dwg,start_x,end_x,i,reference_height)
@@ -31,9 +32,6 @@ def basic_box():
 	dwg.save()
 
 def addSide(dwg,start_x,end_x,count,reference_height):
-	"""I add horizontal cuts for each side to each panel
-	"""
-	#Leave for thickness
 	#All sides meet at the hinges, so we take the top hinge as the reference
 	top_hinges = []
 	top_hinges_bottom = 0
@@ -41,7 +39,7 @@ def addSide(dwg,start_x,end_x,count,reference_height):
 	for i in range(num_cuts):
 		top_hinges_bottom = reference_height + (i*cut_width)
 		top_hinges.append(top_hinges_bottom)
-	top_fold = top_hinges_top - side + (thickness*count)
+	top_fold = top_hinges_top - side - (thickness*count)
 	top_cut = top_fold - side
 	mid_hinge = top_hinges_bottom + side
 	bottom_hinges = []
@@ -52,20 +50,37 @@ def addSide(dwg,start_x,end_x,count,reference_height):
 	bottom_fold = bottom_hinge_bottom + side + (count) * thickness
 	bottom_cut = bottom_fold + side
 
-	cuts_arr = [top_cut,bottom_cut]
-	scores_arr = [top_fold,mid_hinge,bottom_fold]+top_hinges+bottom_hinges
+	cuts_arr = []
+	dashes_arr = []
+	extra_top_cut = 0
+	extra_bottom_cut = 0
+	#Add extra weight balancing flap for the first side
+	if count == 0:
+		extra_top_cut = top_cut - side
+		extra_bottom_cut = bottom_cut+side
+		cuts_arr = [extra_top_cut,extra_bottom_cut]
+		dashes_arr = [top_cut,bottom_cut]
+	else:
+		cuts_arr = [top_cut,bottom_cut]
+	scores_arr = top_hinges+bottom_hinges
+	dashes_arr += [top_fold,mid_hinge,bottom_fold]
+
 	for y in cuts_arr:
 		cuts.add(dwg.line(start=(start_x*mm,y*mm), end=(end_x*mm,y*mm)))
 	for y in scores_arr:
 		scores.add(dwg.line(start=(start_x*mm,y*mm), end=(end_x*mm,y*mm)))
+	for y in dashes_arr:
+		cuts.add(dwg.line(start=(start_x*mm,y*mm), end=(end_x*mm,y*mm))).dasharray(dash_length)
 
 	#If this is the first side, then cut otherwise score
 	if count == 0:
-		cuts.add(dwg.line(start=(start_x*mm,top_cut*mm), end=(start_x*mm,bottom_cut*mm)))
+		cuts.add(dwg.line(start=(start_x*mm,extra_top_cut*mm), end=(start_x*mm,extra_bottom_cut*mm)))
+		cuts.add(dwg.line(start=(end_x*mm,bottom_cut*mm), end=(end_x*mm,extra_bottom_cut*mm)))
+		cuts.add(dwg.line(start=(end_x*mm,top_cut*mm), end=(end_x*mm,extra_top_cut*mm)))
 	else:
-		scores.add(dwg.line(start=(start_x*mm,top_fold*mm), end=(start_x*mm,top_hinges_top*mm)))
+		cuts.add(dwg.line(start=(start_x*mm,top_fold*mm), end=(start_x*mm,top_hinges_top*mm))).dasharray(dash_length)
 		cuts.add(dwg.line(start=(start_x*mm,top_hinges_top*mm), end=(start_x*mm,bottom_hinge_bottom*mm)))
-		scores.add(dwg.line(start=(start_x*mm,bottom_hinge_bottom*mm), end=(start_x*mm,bottom_fold*mm)))
+		cuts.add(dwg.line(start=(start_x*mm,bottom_hinge_bottom*mm), end=(start_x*mm,bottom_fold*mm))).dasharray(dash_length)
 		cuts.add(dwg.line(start=(start_x*mm,top_cut*mm), end=(start_x*mm,top_fold*mm)))
 		cuts.add(dwg.line(start=(start_x*mm,bottom_fold*mm), end=(start_x*mm,bottom_cut*mm)))
 
@@ -106,8 +121,8 @@ def lastSide(dwg,start_x,top_cut,bottom_cut,reference_height):
 
 	cuts.add(dwg.line(start=(end_x*mm,top_tab_top*mm), end=((end_x*mm,top_tab_bottom*mm))))
 	cuts.add(dwg.line(start=(end_x*mm,bottom_tab_top*mm), end=((end_x*mm,bottom_tab_bottom*mm))))
-	scores.add(dwg.line(start=(start_x*mm,top_tab_top*mm), end=((start_x*mm,top_tab_bottom*mm))))
-	scores.add(dwg.line(start=(start_x*mm,bottom_tab_top*mm), end=((start_x*mm,bottom_tab_bottom*mm))))
+	cuts.add(dwg.line(start=(start_x*mm,top_tab_top*mm), end=((start_x*mm,top_tab_bottom*mm)))).dasharray(dash_length)
+	cuts.add(dwg.line(start=(start_x*mm,bottom_tab_top*mm), end=((start_x*mm,bottom_tab_bottom*mm)))).dasharray(dash_length)
 
 	cuts.add(dwg.line(start=(start_x*mm,top_cut*mm), end=((start_x*mm,top_tab_top*mm))))
 	cuts.add(dwg.line(start=(start_x*mm,bottom_cut*mm), end=((start_x*mm,bottom_tab_bottom*mm))))
