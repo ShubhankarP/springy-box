@@ -4,7 +4,7 @@ from svgwrite import cm, mm
 corelDrawX4Ratio = float(40)/125
 ratio = corelDrawX4Ratio
 
-side = 40 * ratio
+side = 41 * ratio
 num_sides = 4
 num_panels = 6
 thickness=0.5 * ratio
@@ -12,11 +12,11 @@ thickness=0.5 * ratio
 length = side*num_panels + (4*thickness)
 num_cuts = 20
 cut_width = 0.6 * ratio
-cut_ratio = 0.2
+cut_ratio = 0.66
 spring_width = side*cut_ratio/2
 dash_length = [6,2]
 
-dwg = svgwrite.Drawing(filename='basic_box.svg', debug=True)
+dwg = svgwrite.Drawing(filename='lower_base.svg', debug=True)
 cuts = dwg.g(id='cuts', stroke='black')
 scores = dwg.g(id='scores', stroke='red')
 dwg.add(cuts)
@@ -43,8 +43,7 @@ def addSide(dwg,start_x,end_x,count,reference_height):
 	for i in range(num_cuts):
 		top_hinges_bottom = reference_height + (i*cut_width)
 		top_hinges.append(top_hinges_bottom)
-	top_fold = top_hinges_top - side - (thickness*count)
-	top_cut = top_fold - side
+	top_fold = top_hinges_top - side
 	mid_hinge = top_hinges_bottom + side
 	bottom_hinges = []
 	bottom_hinge_top = mid_hinge + side
@@ -60,14 +59,9 @@ def addSide(dwg,start_x,end_x,count,reference_height):
 	extra_top_cut = 0
 	extra_bottom_cut = 0
 	#Add extra weight balancing flap for the first side
-	if count == 0:
-		extra_top_cut = top_cut - side
-		extra_bottom_cut = bottom_cut+side
-		cuts_arr = [extra_top_cut,extra_bottom_cut]
-		dashes_arr = [top_cut,bottom_cut]
-	else:
-		cuts_arr = [top_cut,bottom_cut]
-	dashes_arr += [top_fold,mid_hinge,bottom_fold]
+
+	cuts_arr = [top_fold,bottom_cut]
+	dashes_arr += [mid_hinge,bottom_fold]
 	scores_arr = top_hinges+bottom_hinges
 
 	for y in cuts_arr:
@@ -79,14 +73,12 @@ def addSide(dwg,start_x,end_x,count,reference_height):
 
 	#If this is the first side, then cut otherwise score
 	if count == 0:
-		cuts.add(dwg.line(start=(start_x*mm,extra_top_cut*mm), end=(start_x*mm,extra_bottom_cut*mm)))
-		cuts.add(dwg.line(start=(end_x*mm,bottom_cut*mm), end=(end_x*mm,extra_bottom_cut*mm)))
-		cuts.add(dwg.line(start=(end_x*mm,top_cut*mm), end=(end_x*mm,extra_top_cut*mm)))
+		cuts.add(dwg.line(start=(start_x*mm,top_fold*mm), end=(start_x*mm,bottom_cut*mm)))
 	else:
 		cuts.add(dwg.line(start=(start_x*mm,top_fold*mm), end=(start_x*mm,top_hinges_top*mm))).dasharray(dash_length)
 		cuts.add(dwg.line(start=(start_x*mm,top_hinges_top*mm), end=(start_x*mm,bottom_hinge_bottom*mm)))
 		cuts.add(dwg.line(start=(start_x*mm,bottom_hinge_bottom*mm), end=(start_x*mm,bottom_fold*mm))).dasharray(dash_length)
-		cuts.add(dwg.line(start=(start_x*mm,top_cut*mm), end=(start_x*mm,top_fold*mm)))
+		cuts.add(dwg.line(start=(start_x*mm,top_fold*mm), end=(start_x*mm,top_fold*mm)))
 		cuts.add(dwg.line(start=(start_x*mm,bottom_fold*mm), end=(start_x*mm,bottom_cut*mm)))
 
 	elasticity_control_cutout_left = start_x + spring_width
@@ -98,7 +90,6 @@ def addSide(dwg,start_x,end_x,count,reference_height):
 	cuts.add(dwg.line(start=(elasticity_control_cutout_left*mm,top_hinges_bottom*mm), end=(elasticity_control_cutout_left*mm,top_hinges_top*mm)))
 	cuts.add(dwg.line(start=(elasticity_control_cutout_right*mm,top_hinges_bottom*mm), end=(elasticity_control_cutout_right*mm,top_hinges_top*mm)))
 
-
 	cuts.add(dwg.line(start=(elasticity_control_cutout_left*mm,bottom_hinge_bottom*mm), end=(elasticity_control_cutout_right*mm,bottom_hinge_bottom*mm)))
 	cuts.add(dwg.line(start=(elasticity_control_cutout_left*mm,bottom_hinge_top*mm), end=(elasticity_control_cutout_right*mm,bottom_hinge_top*mm)))
 
@@ -106,7 +97,7 @@ def addSide(dwg,start_x,end_x,count,reference_height):
 	cuts.add(dwg.line(start=(elasticity_control_cutout_right*mm,bottom_hinge_bottom*mm), end=(elasticity_control_cutout_right*mm,bottom_hinge_top*mm)))
 
 
-	return (top_cut,bottom_cut)
+	return (top_fold,bottom_cut)
 
 
 def lastSide(dwg,start_x,top_cut,bottom_cut,reference_height):
