@@ -12,7 +12,7 @@ thickness=0.5 * ratio
 length = side*num_panels + (4*thickness)
 num_cuts = 20
 cut_width = 0.6 * ratio
-cut_ratio = 0.2
+cut_ratio = 0.125
 spring_width = side*cut_ratio/2
 dash_length = [6,2]
 

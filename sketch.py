@@ -5,7 +5,7 @@ import inspect
 corelDrawX4Ratio = float(40)/125
 ratio = corelDrawX4Ratio
 
-dash_length = [6,2]
+dash_length = [0.9,1.5]
 
 class MetaLine(type):
 	def __new__(cls,name,parents,dct):
@@ -17,9 +17,19 @@ class SimpleLine(object):
 	__metaclass__ = MetaLine
 	def set(self,**kwargs):
 		for (key,value) in kwargs.items():
-			setattr(self,key,value)
+			if key=='start':
+				setattr(self,'startX',value[0])
+				setattr(self,'startY',value[1])
+			elif key=='end':
+				setattr(self,'endX',value[0])
+				setattr(self,'endY',value[1])
+			else:
+				setattr(self,key,value)
 		return self
 	def getEndPoints(self):
+		if not hasattr(self,'slope'):
+			return ((self.startX,self.startY),(self.endX,self.endY))
+
 		if self.slope==0.0:
 			startPt = (self.startX,self.Y)
 			endPt = (self.endX,self.Y)
@@ -40,8 +50,29 @@ class SketchList(list):
 	pass
 
 
+
 class SimpleLineList(list):
-	pass
+	def addLinesFromXYLists(self,Line,XList,YList):
+		a = min(len(XList),len(YList))
+		for i in range(a):
+			if i < a-1:
+				#Read: sI: starting Index, eI:endingIndex
+				sI = i
+				eI = i+1
+			else:
+				sI = i
+				eI = 0
+			self.append(Line().set(startX=XList[sI],startY=YList[sI],endX=XList[eI],endY=YList[eI]))
+
+	def addLinesFromXXYYTuples(self,Line,XXYYTuples):
+		for i in range(len(XXYYTuples)):
+			self.append(Line().set(startX=XXYYTuples[i][0],startY=XXYYTuples[i][2],endX=XXYYTuples[i][1],endY=XXYYTuples[i][3]))
+
+
+	def addLinesFromXYXYTuples(self,Line,XYXYTuples):
+		for i in range(len(XYXYTuples)):
+			self.append(Line().set(startX=XYXYTuples[i][0],startY=XYXYTuples[i][1],endX=XYXYTuples[i][2],endY=XYXYTuples[i][3]))
+
 
 
 class Sketch(object):

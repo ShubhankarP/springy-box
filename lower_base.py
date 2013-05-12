@@ -4,15 +4,15 @@ from svgwrite import cm, mm
 corelDrawX4Ratio = float(40)/125
 ratio = corelDrawX4Ratio
 
-side = 41 * ratio
+side = 44.5 * ratio
 num_sides = 4
 num_panels = 6
 thickness=0.5 * ratio
 
 length = side*num_panels + (4*thickness)
-num_cuts = 20
+num_cuts = 10
 cut_width = 0.6 * ratio
-cut_ratio = 0.66
+cut_ratio = 1.0
 spring_width = side*cut_ratio/2
 dash_length = [6,2]
 
